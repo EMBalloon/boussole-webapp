@@ -116,45 +116,25 @@
 
   startBtn.addEventListener('click', startOrientation);
 
- function sendAzimuth() {
-  if (azimutCorrige === null) {
-    messageDiv.style.color = 'red';
-    messageDiv.textContent = "Impossible de lire l'azimut.";
-    return;
-  }
-  let lieu = lieuInput.value.trim();
-  if (!lieu) {
-    messageDiv.style.color = 'red';
-    messageDiv.textContent = "Merci de renseigner un lieu.";
-    return;
-  }
-  
-  console.log("Envoi des données :", { azimuth: azimutCorrige, lieu: lieu });
-  
-  messageDiv.style.color = 'black';
-  messageDiv.textContent = "Envoi en cours…";
+  function sendAzimuth() {
+    if (azimutCorrige === null) {
+      messageDiv.style.color = 'red';
+      messageDiv.textContent = "Impossible de lire l'azimut.";
+      return;
+    }
+    let lieu = lieuInput.value.trim();
+    if (!lieu) {
+      messageDiv.style.color = 'red';
+      messageDiv.textContent = "Merci de renseigner un lieu.";
+      return;
+    }
+    messageDiv.style.color = 'black';
+    messageDiv.textContent = "Envoi en cours…";
 
-  fetch('http://primagavotte.free.fr/insert_azimuth_iphone.php', {
-    method: 'POST',
-    headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-    body: `azimuth=${azimutCorrige}&lieu=${encodeURIComponent(lieu)}`
-  })
-  .then(response => response.text())
-  .then(data => {
-    messageDiv.style.color = 'green';
-    messageDiv.textContent = data;
-  })
-  .catch(error => {
-    messageDiv.style.color = 'red';
-    messageDiv.textContent = "Erreur d'envoi : " + error;
-  });
-}
-
-  
     fetch('http://primagavotte.free.fr/insert_azimuth_iphone.php', {
       method: 'POST',
       headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-      body: `azimuth=${azimutCorrige}&lieu=${encodeURIComponent(lieu)}`
+      body: azimuth=${azimutCorrige}&lieu=${encodeURIComponent(lieu)}
     })
     .then(response => response.text())
     .then(data => {
