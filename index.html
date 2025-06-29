@@ -2,56 +2,90 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title>WebApp Boussole</title>
+  <title>Boussole WebApp</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
-    body { font-family: sans-serif; text-align: center; margin-top: 2em; }
-    #angle { font-size: 3em; margin: 1em 0; }
-    button { padding: 1em 2em; font-size: 1em; }
+    body { font-family: sans-serif; text-align: center; padding: 2em; }
+    h1 { font-size: 2em; }
+    .big { font-size: 3em; margin: 1em 0; }
+    label, input { font-size: 1.2em; margin: 0.5em; }
   </style>
 </head>
 <body>
-  <h1>WebApp Boussole</h1>
-  <div id="angle">⏱</div>
-  <button onclick="start()">Activer la boussole</button>
+  <h1>Boussole WebApp</h1>
+
+  <p>Azimut corrigé : <span class="big" id="angle">---</span></p>
+  <p>Valeur brute (alpha) : <span id="raw">---</span></p>
+
+  <label for="correction">Correction (°) :</label>
+  <input type="number" id="correction" value="0" step="1">
+  <p>Correction actuelle : <span id="current-offset">0</span>°</p>
+
+  <label for="lieu">Lieu :</label>
+  <input type="text" id="lieu" value="test">
+
+  <p id="status" style="margin-top: 1em; color: green;"></p>
 
   <script>
-    let azimut = null;
+    let offset = 0;
+    let azimutCorrige = null;
 
-    function start() {
-      if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
-        DeviceOrientationEvent.requestPermission()
-          .then(permissionState => {
-            if (permissionState === 'granted') {
-              window.addEventListener('deviceorientationabsolute', handleOrientation, true);
-              window.addEventListener('deviceorientation', handleOrientation, true);
-            }
-          })
-          .catch(console.error);
-      } else {
-        window.addEventListener('deviceorientation', handleOrientation, true);
-      }
+    // Récupérer l’offset stocké
+    if (localStorage.getItem("offset")) {
+      offset = parseInt(localStorage.getItem("offset"));
+      document.getElementById("correction").value = offset;
+      document.getElementById("current-offset").textContent = offset;
     }
 
+    // Mettre à jour l’offset à la volée
+    document.getElementById("correction").addEventListener("input", (e) => {
+      offset = parseInt(e.target.value) || 0;
+      localStorage.setItem("offset", offset);
+      document.getElementById("current-offset").textContent = offset;
+    });
+
+    // Traitement du capteur orientation
     function handleOrientation(event) {
-      const alpha = event.alpha; // Rotation autour de l’axe Z
+      const alpha = event.alpha;
       if (alpha !== null) {
-        azimut = Math.round(360 - alpha) % 360;
-        document.getElementById("angle").textContent = azimut + "°";
-        sendAzimut(azimut);
+        document.getElementById("raw").textContent = alpha.toFixed(2);
+        azimutCorrige = (Math.round(360 - alpha + offset)) % 360;
+        document.getElementById("angle").textContent = azimutCorrige + "°";
       }
     }
 
-    function sendAzimut(azimut) {
-      fetch("https://primagavotte.free.fr/insert_azimuth_iphone.php", {
-        method: "POST",
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        body: `azimuth=${azimut}&lieu=webapp`
-      })
-      .then(response => response.text())
-      .then(txt => console.log("Réponse du serveur:", txt))
-      .catch(error => console.error("Erreur:", error));
+    // Écouteur pour la boussole
+    if (window.DeviceOrientationEvent) {
+      window.addEventListener("deviceorientation", handleOrientation);
+    } else {
+      alert("Votre appareil ne prend pas en charge DeviceOrientation.");
     }
+
+    // Envoi périodique vers le script PHP (toutes les 10 secondes)
+    setInterval(() => {
+      if (azimutCorrige !== null) {
+        const lieu = document.getElementById("lieu").value || "test";
+        const url = "https://primagavotte.free.fr/insert_azimuth_iphone.php"; // ← à personnaliser
+        const params = new URLSearchParams();
+        params.append("azimuth", azimutCorrige);
+        params.append("lieu", lieu);
+
+        fetch(url, {
+          method: "POST",
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          body: params.toString()
+        })
+        .then(response => response.text())
+        .then(result => {
+          console.log(result);
+          document.getElementById("status").textContent = "✅ Donnée envoyée à " + new Date().toLocaleTimeString();
+        })
+        .catch(error => {
+          console.error("Erreur:", error);
+          document.getElementById("status").textContent = "❌ Erreur lors de l’envoi";
+        });
+      }
+    }, 10000); // toutes les 10 secondes
   </script>
 </body>
 </html>
