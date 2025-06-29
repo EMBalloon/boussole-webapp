@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Boussole WebApp</title>
+<title>Boussole WebApp avec Permission iOS</title>
 <style>
   body {
     font-family: Arial, sans-serif;
@@ -32,7 +32,6 @@
   #message {
     margin-top: 1em;
     font-weight: bold;
-    color: green;
   }
   hr {
     margin: 2em 0;
@@ -41,6 +40,7 @@
 </style>
 </head>
 <body>
+
 <h1>Boussole Primagavotte</h1>
 
 <label for="lieu">Lieu :</label>
@@ -54,16 +54,17 @@
 <p>Azimut corrigé :</p>
 <div id="azimut">--°</div>
 
-<button id="envoyer">Envoyer</button>
+<button id="startBtn">Autoriser l'accès aux capteurs</button>
 
 <div id="message"></div>
 
 <script>
-  // Récupération des éléments
   let offsetInput = document.getElementById('offset');
   let lieuInput = document.getElementById('lieu');
   let azimutDiv = document.getElementById('azimut');
   let messageDiv = document.getElementById('message');
+  let startBtn = document.getElementById('startBtn');
+
   let offset = 0;
   let azimutCorrige = null;
 
@@ -71,7 +72,7 @@
     offset = parseInt(offsetInput.value) || 0;
   });
 
-  window.addEventListener('deviceorientation', function(event) {
+  function handleOrientation(event) {
     let alpha = event.alpha;
     if (alpha !== null) {
       azimutCorrige = Math.round(((-alpha + 360 + offset) % 360));
@@ -80,10 +81,42 @@
       azimutDiv.textContent = "N/A";
       azimutCorrige = null;
     }
-  });
+  }
 
-  // Fonction d’envoi des données
-  function envoyerDonnees() {
+  function startOrientation() {
+    if (typeof DeviceOrientationEvent !== 'undefined' &&
+        typeof DeviceOrientationEvent.requestPermission === 'function') {
+      // iOS 13+ demande permission explicite
+      DeviceOrientationEvent.requestPermission()
+        .then(permissionState => {
+          if (permissionState === 'granted') {
+            window.addEventListener('deviceorientation', handleOrientation);
+            messageDiv.style.color = 'green';
+            messageDiv.textContent = "Capteurs activés.";
+            startBtn.style.display = 'none';
+            startAutoSend();
+          } else {
+            messageDiv.style.color = 'red';
+            messageDiv.textContent = "Permission refusée pour les capteurs d'orientation.";
+          }
+        })
+        .catch(error => {
+          messageDiv.style.color = 'red';
+          messageDiv.textContent = "Erreur permission : " + error;
+        });
+    } else {
+      // Autres navigateurs / Android
+      window.addEventListener('deviceorientation', handleOrientation);
+      messageDiv.style.color = 'green';
+      messageDiv.textContent = "Capteurs activés.";
+      startBtn.style.display = 'none';
+      startAutoSend();
+    }
+  }
+
+  startBtn.addEventListener('click', startOrientation);
+
+  function sendAzimuth() {
     if (azimutCorrige === null) {
       messageDiv.style.color = 'red';
       messageDiv.textContent = "Impossible de lire l'azimut.";
@@ -114,11 +147,12 @@
     });
   }
 
-  // Lancement de l’envoi automatique toutes les 10 secondes (10000 ms)
-  setInterval(envoyerDonnees, 10000);
-
-  // Cacher le bouton envoyer (car automatisé)
-  document.getElementById('envoyer').style.display = 'none';
+  // Envoi automatique toutes les 10 secondes après démarrage
+  let intervalId = null;
+  function startAutoSend() {
+    if (intervalId) clearInterval(intervalId);
+    intervalId = setInterval(sendAzimuth, 10000);
+  }
 </script>
 
 </body>
