@@ -35,9 +35,9 @@
     color: green;
   }
   hr {
-  margin: 2em 0;  /* 2em d'espace avant et après le trait */
-  border: 1px solid #ccc;
-}
+    margin: 2em 0;
+    border: 1px solid #ccc;
+  }
 </style>
 </head>
 <body>
@@ -46,8 +46,8 @@
 <label for="lieu">Lieu :</label>
 <input id="lieu" type="text" placeholder="Ex: Paris" />
 
-<hr style="margin: 2em 0; border: 1px solid #ccc;" />
-  
+<hr />
+
 <label for="offset">Correction (°) :</label>
 <input id="offset" type="number" value="0" step="1" min="-360" max="360" />
 
@@ -59,6 +59,7 @@
 <div id="message"></div>
 
 <script>
+  // Récupération des éléments
   let offsetInput = document.getElementById('offset');
   let lieuInput = document.getElementById('lieu');
   let azimutDiv = document.getElementById('azimut');
@@ -81,7 +82,8 @@
     }
   });
 
-  document.getElementById('envoyer').addEventListener('click', () => {
+  // Fonction d’envoi des données
+  function envoyerDonnees() {
     if (azimutCorrige === null) {
       messageDiv.style.color = 'red';
       messageDiv.textContent = "Impossible de lire l'azimut.";
@@ -95,8 +97,6 @@
     }
     messageDiv.style.color = 'black';
     messageDiv.textContent = "Envoi en cours…";
-
-    // Ici on pourra faire la requête fetch vers ton script PHP
 
     fetch('https://primagavotte.free.fr/insert_azimuth_iphone.php', {
       method: 'POST',
@@ -112,8 +112,13 @@
       messageDiv.style.color = 'red';
       messageDiv.textContent = "Erreur d'envoi : " + error;
     });
-    */
-  });
+  }
+
+  // Lancement de l’envoi automatique toutes les 10 secondes (10000 ms)
+  setInterval(envoyerDonnees, 10000);
+
+  // Cacher le bouton envoyer (car automatisé)
+  document.getElementById('envoyer').style.display = 'none';
 </script>
 
 </body>
