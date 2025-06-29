@@ -36,7 +36,7 @@
     function handleOrientation(event) {
       const alpha = event.alpha; // Rotation autour de l’axe Z
       if (alpha !== null) {
-        azimut = Math.round(alpha);
+        azimut = Math.round(360 - alpha) % 360;
         document.getElementById("angle").textContent = azimut + "°";
         sendAzimut(azimut);
       }
