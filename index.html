@@ -137,22 +137,22 @@
     messageDiv.style.color = 'black';
     messageDiv.textContent = "Envoi en cours…";
 
-    fetch('http://primagavotte.free.fr/insert_azimuth_iphone.php', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-        body: `azimuth=${azimutCorrige}&lieu=${encodeURIComponent(lieu)}`
-    })
-    .then(response => response.text())
-    .then(data => {
-        messageDiv.style.color = 'green';
-        messageDiv.textContent = data;
-        console.log("DEBUG - Réponse du serveur :", data); // Utile pour voir la réponse PHP
-    })
-    .catch(error => {
-        messageDiv.style.color = 'red';
-        messageDiv.textContent = "Erreur d'envoi : " + error;
-        console.error("DEBUG - Erreur Fetch :", error); // Utile pour voir les erreurs réseau
-    });
+   fetch('http://primagavotte.free.fr/proxy_azimuth.php', { // Ciblez le proxy sur Free.fr
+    method: 'POST',
+    headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+    body: `azimuth=${azimutCorrige}&lieu=${encodeURIComponent(lieu)}`
+})
+.then(response => response.text())
+.then(data => {
+    messageDiv.style.color = 'green';
+    messageDiv.textContent = data;
+    console.log("DEBUG - Réponse du serveur via proxy :", data);
+})
+.catch(error => {
+    messageDiv.style.color = 'red';
+    messageDiv.textContent = "Erreur d'envoi via proxy : " + error;
+    console.error("DEBUG - Erreur Fetch proxy :", error);
+});
 }
 
   // Envoi automatique toutes les 10 secondes après démarrage
