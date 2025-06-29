@@ -131,7 +131,7 @@
     messageDiv.style.color = 'black';
     messageDiv.textContent = "Envoi en cours…";
 
-    fetch('https://primagavotte.free.fr/insert_azimuth_iphone.php', {
+    fetch('http://primagavotte.free.fr/insert_azimuth_iphone.php', {
       method: 'POST',
       headers: {'Content-Type': 'application/x-www-form-urlencoded'},
       body: `azimuth=${azimutCorrige}&lieu=${encodeURIComponent(lieu)}`
