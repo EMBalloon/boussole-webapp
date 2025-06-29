@@ -49,7 +49,7 @@
       const alpha = event.alpha;
       if (alpha !== null) {
         document.getElementById("raw").textContent = alpha.toFixed(2);
-        azimutCorrige = (Math.round(360 - alpha + offset)) % 360;
+        azimutCorrige = (Math.round(alpha + offset)) % 360;
         document.getElementById("angle").textContent = azimutCorrige + "°";
       }
     }
