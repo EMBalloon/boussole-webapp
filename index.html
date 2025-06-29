@@ -116,41 +116,44 @@
 
   startBtn.addEventListener('click', startOrientation);
 
-  function sendAzimuth() {
-  if (azimutCorrige === null) {
-    messageDiv.style.color = 'red';
-    messageDiv.textContent = "Impossible de lire l'azimut.";
-    return;
-  }
-  let lieu = lieuInput.value.trim();
-  if (!lieu) {
-    messageDiv.style.color = 'red';
-    messageDiv.textContent = "Merci de renseigner un lieu.";
-    return;
-  }
-  messageDiv.style.color = 'black';
-  messageDiv.textContent = "Envoi en cours…";
+ function sendAzimuth() {
+    if (azimutCorrige === null) {
+        messageDiv.style.color = 'red';
+        messageDiv.textContent = "Impossible de lire l'azimut. (azimutCorrige est null)"; // Ajout d'une précision
+        return;
+    }
+    let lieu = lieuInput.value.trim();
+    if (!lieu) {
+        messageDiv.style.color = 'red';
+        messageDiv.textContent = "Merci de renseigner un lieu.";
+        return;
+    }
 
-    console.log("Valeur d'azimutCorrige à l'envoi :", azimutCorrige);
-console.log("Valeur de lieu à l'envoi :", lieu);
-// ... votre appel fetch
-    
-  fetch('http://primagavotte.free.fr/insert_azimuth_iphone.php', {
-  method: 'POST',
-  headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-  body: `azimuth=${azimutCorrige}&lieu=${encodeURIComponent(lieu)}`
-})
-  })
-  .then(response => response.text())
-  .then(data => {
-    messageDiv.style.color = 'green';
-    messageDiv.textContent = data;
-  })
-  .catch(error => {
-    messageDiv.style.color = 'red';
-    messageDiv.textContent = "Erreur d'envoi : " + error;
-  });
-  }
+    // --- AJOUTEZ CES LIGNES POUR DÉBUGGER ---
+    console.log("DEBUG - Valeur de azimutCorrige à envoyer :", azimutCorrige);
+    console.log("DEBUG - Valeur de lieu à envoyer :", lieu);
+    // --- FIN DES LIGNES DE DÉBOGAGE ---
+
+    messageDiv.style.color = 'black';
+    messageDiv.textContent = "Envoi en cours…";
+
+    fetch('http://primagavotte.free.fr/insert_azimuth_iphone.php', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+        body: `azimuth=${azimutCorrige}&lieu=${encodeURIComponent(lieu)}`
+    })
+    .then(response => response.text())
+    .then(data => {
+        messageDiv.style.color = 'green';
+        messageDiv.textContent = data;
+        console.log("DEBUG - Réponse du serveur :", data); // Utile pour voir la réponse PHP
+    })
+    .catch(error => {
+        messageDiv.style.color = 'red';
+        messageDiv.textContent = "Erreur d'envoi : " + error;
+        console.error("DEBUG - Erreur Fetch :", error); // Utile pour voir les erreurs réseau
+    });
+}
 
   // Envoi automatique toutes les 10 secondes après démarrage
   let intervalId = null;
