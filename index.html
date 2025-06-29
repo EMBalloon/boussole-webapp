@@ -16,11 +16,23 @@
   }
   label {
     font-weight: bold;
+    display: block;
+    margin-top: 1em;
   }
-  input[type=number] {
-    width: 60px;
+  input[type=number], input[type=text] {
+    width: 150px;
     font-size: 1.2em;
     text-align: center;
+  }
+  button {
+    margin-top: 1em;
+    font-size: 1.2em;
+    padding: 0.3em 1em;
+  }
+  #message {
+    margin-top: 1em;
+    font-weight: bold;
+    color: green;
   }
 </style>
 </head>
@@ -30,28 +42,72 @@
 <label for="offset">Correction (°) :</label>
 <input id="offset" type="number" value="0" step="1" min="-360" max="360" />
 
+<label for="lieu">Lieu :</label>
+<input id="lieu" type="text" placeholder="Ex: Paris" />
+
 <p>Azimut corrigé :</p>
 <div id="azimut">--°</div>
 
+<button id="envoyer">Envoyer</button>
+
+<div id="message"></div>
+
 <script>
   let offsetInput = document.getElementById('offset');
+  let lieuInput = document.getElementById('lieu');
   let azimutDiv = document.getElementById('azimut');
+  let messageDiv = document.getElementById('message');
   let offset = 0;
+  let azimutCorrige = null;
 
   offsetInput.addEventListener('input', () => {
     offset = parseInt(offsetInput.value) || 0;
   });
 
   window.addEventListener('deviceorientation', function(event) {
-    let alpha = event.alpha; // valeur brute de l'azimut en degrés
-
+    let alpha = event.alpha;
     if (alpha !== null) {
-      // Calcul azimut corrigé (sens horaire)
-      let azimutCorrige = Math.round(((-alpha + 360 + offset) % 360));
+      azimutCorrige = Math.round(((-alpha + 360 + offset) % 360));
       azimutDiv.textContent = azimutCorrige + "°";
     } else {
       azimutDiv.textContent = "N/A";
+      azimutCorrige = null;
     }
+  });
+
+  document.getElementById('envoyer').addEventListener('click', () => {
+    if (azimutCorrige === null) {
+      messageDiv.style.color = 'red';
+      messageDiv.textContent = "Impossible de lire l'azimut.";
+      return;
+    }
+    let lieu = lieuInput.value.trim();
+    if (!lieu) {
+      messageDiv.style.color = 'red';
+      messageDiv.textContent = "Merci de renseigner un lieu.";
+      return;
+    }
+    messageDiv.style.color = 'black';
+    messageDiv.textContent = "Envoi en cours…";
+
+    // Ici on pourra faire la requête fetch vers ton script PHP
+    // Exemple (à adapter) :
+    /*
+    fetch('https://tonserveur.free.fr/insert_azimuth.php', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+      body: `azimuth=${azimutCorrige}&lieu=${encodeURIComponent(lieu)}`
+    })
+    .then(response => response.text())
+    .then(data => {
+      messageDiv.style.color = 'green';
+      messageDiv.textContent = data;
+    })
+    .catch(error => {
+      messageDiv.style.color = 'red';
+      messageDiv.textContent = "Erreur d'envoi : " + error;
+    });
+    */
   });
 </script>
 
