@@ -1,91 +1,59 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <title>Boussole WebApp</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <style>
-    body { font-family: sans-serif; text-align: center; padding: 2em; }
-    h1 { font-size: 2em; }
-    .big { font-size: 3em; margin: 1em 0; }
-    label, input { font-size: 1.2em; margin: 0.5em; }
-  </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Boussole WebApp</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    text-align: center;
+    padding: 1em;
+  }
+  #azimut {
+    font-size: 5em;
+    margin: 0.2em 0;
+  }
+  label {
+    font-weight: bold;
+  }
+  input[type=number] {
+    width: 60px;
+    font-size: 1.2em;
+    text-align: center;
+  }
+</style>
 </head>
 <body>
-  <h1>Boussole WebApp</h1>
+<h1>Boussole iPhone → SQL Free</h1>
 
-  <p>Azimut corrigé : <span class="big" id="angle">---</span></p>
-  <p>Valeur brute (alpha) : <span id="raw">---</span></p>
+<label for="offset">Correction (°) :</label>
+<input id="offset" type="number" value="0" step="1" min="-360" max="360" />
 
-  <label for="correction">Correction (°) :</label>
-  <input type="number" id="correction" value="0" step="1">
-  <p>Correction actuelle : <span id="current-offset">0</span>°</p>
+<p>Azimut corrigé :</p>
+<div id="azimut">--°</div>
 
-  <label for="lieu">Lieu :</label>
-  <input type="text" id="lieu" value="test">
+<script>
+  let offsetInput = document.getElementById('offset');
+  let azimutDiv = document.getElementById('azimut');
+  let offset = 0;
 
-  <p id="status" style="margin-top: 1em; color: green;"></p>
+  offsetInput.addEventListener('input', () => {
+    offset = parseInt(offsetInput.value) || 0;
+  });
 
-  <script>
-    let offset = 0;
-    let azimutCorrige = null;
+  window.addEventListener('deviceorientation', function(event) {
+    let alpha = event.alpha; // valeur brute de l'azimut en degrés
 
-    // Récupérer l’offset stocké
-    if (localStorage.getItem("offset")) {
-      offset = parseInt(localStorage.getItem("offset"));
-      document.getElementById("correction").value = offset;
-      document.getElementById("current-offset").textContent = offset;
-    }
-
-    // Mettre à jour l’offset à la volée
-    document.getElementById("correction").addEventListener("input", (e) => {
-      offset = parseInt(e.target.value) || 0;
-      localStorage.setItem("offset", offset);
-      document.getElementById("current-offset").textContent = offset;
-    });
-
-    // Traitement du capteur orientation
-    function handleOrientation(event) {
-      const alpha = event.alpha;
-      if (alpha !== null) {
-        document.getElementById("raw").textContent = alpha.toFixed(2);
-       azimutCorrige = (Math.round((alpha * -1 + 360 + offset)) % 360);
-        document.getElementById("angle").textContent = azimutCorrige + "°";
-      }
-    }
-
-    // Écouteur pour la boussole
-    if (window.DeviceOrientationEvent) {
-      window.addEventListener("deviceorientation", handleOrientation);
+    if (alpha !== null) {
+      // Calcul azimut corrigé (sens horaire)
+      let azimutCorrige = Math.round(((-alpha + 360 + offset) % 360));
+      azimutDiv.textContent = azimutCorrige + "°";
     } else {
-      alert("Votre appareil ne prend pas en charge DeviceOrientation.");
+      azimutDiv.textContent = "N/A";
     }
+  });
+</script>
 
-    // Envoi périodique vers le script PHP (toutes les 10 secondes)
-    setInterval(() => {
-      if (azimutCorrige !== null) {
-        const lieu = document.getElementById("lieu").value || "test";
-        const url = "https://primagavotte.free.fr/insert_azimuth_iphone.php"; // ← à personnaliser
-        const params = new URLSearchParams();
-        params.append("azimuth", azimutCorrige);
-        params.append("lieu", lieu);
-
-        fetch(url, {
-          method: "POST",
-          headers: { "Content-Type": "application/x-www-form-urlencoded" },
-          body: params.toString()
-        })
-        .then(response => response.text())
-        .then(result => {
-          console.log(result);
-          document.getElementById("status").textContent = "✅ Donnée envoyée à " + new Date().toLocaleTimeString();
-        })
-        .catch(error => {
-          console.error("Erreur:", error);
-          document.getElementById("status").textContent = "❌ Erreur lors de l’envoi";
-        });
-      }
-    }, 10000); // toutes les 10 secondes
-  </script>
 </body>
 </html>
