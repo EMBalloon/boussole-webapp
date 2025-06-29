@@ -34,6 +34,10 @@
     font-weight: bold;
     color: green;
   }
+  hr {
+  margin: 2em 0;  /* 2em d'espace avant et après le trait */
+  border: 1px solid #ccc;
+}
 </style>
 </head>
 <body>
@@ -42,10 +46,7 @@
 <label for="lieu">Lieu :</label>
 <input id="lieu" type="text" placeholder="Ex: Paris" />
 
-hr {
-  margin: 2em 0;  /* 2em d'espace avant et après le trait */
-  border: 1px solid #ccc;
-}
+<hr style="margin: 2em 0; border: 1px solid #ccc;" />
   
 <label for="offset">Correction (°) :</label>
 <input id="offset" type="number" value="0" step="1" min="-360" max="360" />
