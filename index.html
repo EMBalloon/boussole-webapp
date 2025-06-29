@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>WebApp Boussole</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body { font-family: sans-serif; text-align: center; margin-top: 2em; }
+    #angle { font-size: 3em; margin: 1em 0; }
+    button { padding: 1em 2em; font-size: 1em; }
+  </style>
+</head>
+<body>
+  <h1>WebApp Boussole</h1>
+  <div id="angle">⏱</div>
+  <button onclick="start()">Activer la boussole</button>
+
+  <script>
+    let azimut = null;
+
+    function start() {
+      if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+        DeviceOrientationEvent.requestPermission()
+          .then(permissionState => {
+            if (permissionState === 'granted') {
+              window.addEventListener('deviceorientationabsolute', handleOrientation, true);
+              window.addEventListener('deviceorientation', handleOrientation, true);
+            }
+          })
+          .catch(console.error);
+      } else {
+        window.addEventListener('deviceorientation', handleOrientation, true);
+      }
+    }
+
+    function handleOrientation(event) {
+      const alpha = event.alpha; // Rotation autour de l’axe Z
+      if (alpha !== null) {
+        azimut = Math.round(alpha);
+        document.getElementById("angle").textContent = azimut + "°";
+        sendAzimut(azimut);
+      }
+    }
+
+    function sendAzimut(azimut) {
+      fetch("https://TON_IDENTIFIANT.free.fr/insert_azimuth.php", {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: `azimuth=${azimut}&lieu=webapp`
+      })
+      .then(response => response.text())
+      .then(txt => console.log("Réponse du serveur:", txt))
+      .catch(error => console.error("Erreur:", error));
+    }
+  </script>
+</body>
+</html>
