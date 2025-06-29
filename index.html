@@ -130,7 +130,9 @@
     }
     messageDiv.style.color = 'black';
     messageDiv.textContent = "Envoi en cours…";
-
+    
+console.log("Envoi azimut=", azimutCorrige, "lieu=", lieu);
+  
     fetch('http://primagavotte.free.fr/insert_azimuth_iphone.php', {
       method: 'POST',
       headers: {'Content-Type': 'application/x-www-form-urlencoded'},
