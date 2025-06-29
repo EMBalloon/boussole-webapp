@@ -132,24 +132,21 @@
     messageDiv.textContent = "Envoi en cours…";
 
     fetch('http://primagavotte.free.fr/insert_azimuth_iphone.php', {
-  method: 'POST',
-  headers: {
-    'Content-Type': 'application/x-www-form-urlencoded'
-  },
-  body: new URLSearchParams({
-    azimuth: azimutCorrige,
-    lieu: lieu
-  })
-})
-
-
+      method: 'POST',
+      headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+      body: azimuth=${azimutCorrige}&lieu=${encodeURIComponent(lieu)}
+    })
+    .then(response => response.text())
+    .then(data => {
+      messageDiv.style.color = 'green';
+      messageDiv.textContent = data;
+    })
+    .catch(error => {
+      messageDiv.style.color = 'red';
+      messageDiv.textContent = "Erreur d'envoi : " + error;
+    });
   }
 
-
-
-
-
-  
   // Envoi automatique toutes les 10 secondes après démarrage
   let intervalId = null;
   function startAutoSend() {
