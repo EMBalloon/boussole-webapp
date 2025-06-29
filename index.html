@@ -131,6 +131,10 @@
   messageDiv.style.color = 'black';
   messageDiv.textContent = "Envoi en cours…";
 
+    console.log("Valeur d'azimutCorrige à l'envoi :", azimutCorrige);
+console.log("Valeur de lieu à l'envoi :", lieu);
+// ... votre appel fetch
+    
   fetch('http://primagavotte.free.fr/insert_azimuth_iphone.php', {
   method: 'POST',
   headers: {'Content-Type': 'application/x-www-form-urlencoded'},
