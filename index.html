@@ -138,7 +138,8 @@
     messageDiv.style.color = 'black';
     messageDiv.textContent = "Envoi en cours…";
 console.log("Envoi azimuth =", azimutCorrige, "lieu =", lieu);
- fetch('https://emercier.synology.me/insert_azimuth_iphone.php', {
+console.log("Requête envoyée :", `azimuth=${azimutCorrige}&lieu=${encodeURIComponent(lieu)}`);
+   fetch('https://emercier.synology.me/insert_azimuth_iphone.php', {
   method: 'POST',
   headers: {'Content-Type': 'application/x-www-form-urlencoded'},
   body: `azimuth=${azimutCorrige}&lieu=${encodeURIComponent(lieu)}`
