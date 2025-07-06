@@ -1,57 +1,71 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Boussole</title>
+<meta charset="UTF-8" />
+<title>Boussole WebApp</title>
 </head>
 <body>
-  <h1>Test Boussole</h1>
-  <input type="text" id="lieu" placeholder="Lieu" />
-  <button id="startBtn">Autoriser accès capteurs</button>
-  <p id="azimut">--°</p>
-  <p id="message"></p>
 
-  <script>
-    let azimut = null;
+<label for="lieu">Lieu :</label>
+<input id="lieu" type="text" placeholder="Ex : Paris" />
 
-    function handleOrientation(e) {
-      if (e.alpha != null) {
-        azimut = Math.round((360 - e.alpha) % 360);
-        document.getElementById('azimut').textContent = azimut + "°";
-      }
+<p>Azimut corrigé : <span id="azimut">--°</span></p>
+
+<button id="startBtn">Autoriser l'accès aux capteurs</button>
+
+<div id="message"></div>
+
+<script>
+  const lieuInput = document.getElementById('lieu');
+  const azimutSpan = document.getElementById('azimut');
+  const messageDiv = document.getElementById('message');
+  const startBtn = document.getElementById('startBtn');
+
+  let azimutCorrige = 0;
+
+  // Simule lecture azimut (remplace par ta fonction réelle)
+  function simulateAzimut() {
+    azimutCorrige = Math.floor(Math.random() * 360);
+    azimutSpan.textContent = azimutCorrige + "°";
+  }
+
+  function sendAzimut() {
+    const lieu = lieuInput.value.trim();
+    if (!lieu) {
+      messageDiv.style.color = 'red';
+      messageDiv.textContent = "Merci de renseigner un lieu.";
+      return;
     }
+    messageDiv.style.color = 'black';
+    messageDiv.textContent = "Envoi en cours…";
 
-    function start() {
-      if (typeof DeviceOrientationEvent !== 'undefined' &&
-          typeof DeviceOrientationEvent.requestPermission === 'function') {
-        DeviceOrientationEvent.requestPermission().then(response => {
-          if (response === 'granted') {
-            window.addEventListener('deviceorientation', handleOrientation);
-            setInterval(sendAzimuth, 10000);
-          }
-        }).catch(console.error);
-      } else {
-        window.addEventListener('deviceorientation', handleOrientation);
-        setInterval(sendAzimuth, 10000);
-      }
-    }
+    fetch('https://emercier.synology.me/insert_azimuth_iphone.php', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+      body: `azimuth=${azimutCorrige}&lieu=${encodeURIComponent(lieu)}`
+    })
+    .then(response => response.text())
+    .then(data => {
+      messageDiv.style.color = 'green';
+      messageDiv.textContent = "Réponse serveur : " + data;
+    })
+    .catch(error => {
+      messageDiv.style.color = 'red';
+      messageDiv.textContent = "Erreur d'envoi : " + error;
+    });
+  }
 
-    function sendAzimuth() {
-      const lieu = document.getElementById('lieu').value.trim();
-      if (!lieu || azimut === null) return;
+  // Exemple simple : envoie toutes les 10 sec après clic bouton
+  startBtn.addEventListener('click', () => {
+    simulateAzimut(); // pour test
+    sendAzimut();
+    setInterval(() => {
+      simulateAzimut();
+      sendAzimut();
+    }, 10000);
+    startBtn.disabled = true;
+  });
+</script>
 
-      fetch('https://emercier.synology.me/insert_azimuth_iphone.php', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-        body: `azimuth=${azimut}&lieu=${encodeURIComponent(lieu)}`
-      })
-      .then(res => res.text())
-      .then(txt => document.getElementById('message').textContent = txt)
-      .catch(err => document.getElementById('message').textContent = "Erreur : " + err);
-    }
-
-    document.getElementById('startBtn').addEventListener('click', start);
-  </script>
 </body>
 </html>
