@@ -137,10 +137,11 @@
     messageDiv.style.color = 'black';
     messageDiv.textContent = "Envoi en cours…";
 
-   fetch('http://primagavotte.free.fr/proxy_azimuth.php', { // Ciblez le proxy sur Free.fr
+  fetch('http://emercier.synology.me/insert_azimuth_iphone.php', {
     method: 'POST',
     headers: {'Content-Type': 'application/x-www-form-urlencoded'},
     body: `azimuth=${azimutCorrige}&lieu=${encodeURIComponent(lieu)}`
+})
 })
 .then(response => response.text())
 .then(data => {
