@@ -136,21 +136,21 @@
     messageDiv.style.color = 'black';
     messageDiv.textContent = "Envoi en cours…";
 
-   fetch('https://emercier.synology.me/insert_azimuth_iphone.php', {
-    method: 'POST',
-    headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-    body: `azimuth=${azimutCorrige}&lieu=${encodeURIComponent(lieu)}`
+   fetch('http://emercier.synology.me/insert_azimuth_iphone.php', {
+  method: 'POST',
+  headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+  body: `azimuth=${azimutCorrige}&lieu=${encodeURIComponent(lieu)}`
 })
 .then(response => response.text())
 .then(data => {
-    messageDiv.style.color = 'green';
-    messageDiv.textContent = data;
-    console.log("DEBUG - Réponse du serveur :", data);
+  messageDiv.style.color = 'black';
+  messageDiv.textContent = data;
+  console.log("Réponse brute du serveur :", data);
 })
 .catch(error => {
-    messageDiv.style.color = 'red';
-    messageDiv.textContent = "Erreur d'envoi : " + error;
-    console.error("DEBUG - Erreur Fetch :", error);
+  messageDiv.style.color = 'red';
+  messageDiv.textContent = "Erreur d'envoi : " + error;
+  console.error("Erreur fetch :", error);
 });
 
   }
