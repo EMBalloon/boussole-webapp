@@ -138,22 +138,21 @@
     messageDiv.style.color = 'black';
     messageDiv.textContent = "Envoi en cours…";
 console.log("Envoi azimuth =", azimutCorrige, "lieu =", lieu);
-  fetch('https://emercier.synology.me/insert_azimuth_iphone.php', {
-    method: 'POST',
-    headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-    body: `azimuth=${azimutCorrige}&lieu=${encodeURIComponent(lieu)}`
-})
+ fetch('https://emercier.synology.me/insert_azimuth_iphone.php', {
+  method: 'POST',
+  headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+  body: `azimuth=${azimutCorrige}&lieu=${encodeURIComponent(lieu)}`
 })
 .then(response => response.text())
 .then(data => {
     messageDiv.style.color = 'green';
     messageDiv.textContent = data;
-    console.log("DEBUG - Réponse du serveur via proxy :", data);
+    console.log("Réponse du serveur :", data);
 })
 .catch(error => {
     messageDiv.style.color = 'red';
-    messageDiv.textContent = "Erreur d'envoi via proxy : " + error;
-    console.error("DEBUG - Erreur Fetch proxy :", error);
+    messageDiv.textContent = "Erreur d'envoi : " + error;
+    console.error("Erreur Fetch :", error);
 });
 }
 
