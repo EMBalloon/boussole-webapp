@@ -82,19 +82,7 @@
       azimutCorrige = null;
     }
   }
-<button id="permBtn">Demander permission capteurs</button>
 
-<script>
-  document.getElementById('permBtn').addEventListener('click', () => {
-    if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
-      DeviceOrientationEvent.requestPermission()
-        .then(permissionState => alert("Permission : " + permissionState))
-        .catch(e => alert("Erreur permission : " + e));
-    } else {
-      alert("Permission automatique ou non requise sur ce navigateur.");
-    }
-  });
-</script>
 
   function startOrientation() {
     if (typeof DeviceOrientationEvent !== 'undefined' &&
