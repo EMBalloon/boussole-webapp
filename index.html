@@ -2,69 +2,167 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8" />
-<title>Boussole WebApp</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Boussole WebApp avec Permission iOS</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    text-align: center;
+    padding: 1em;
+  }
+  #azimut {
+    font-size: 5em;
+    margin: 0.2em 0;
+  }
+  label {
+    font-weight: bold;
+    display: block;
+    margin-top: 1em;
+  }
+  input[type=number], input[type=text] {
+    width: 150px;
+    font-size: 1.2em;
+    text-align: center;
+  }
+  button {
+    margin-top: 1em;
+    font-size: 1.2em;
+    padding: 0.3em 1em;
+  }
+  #message {
+    margin-top: 1em;
+    font-weight: bold;
+  }
+  hr {
+    margin: 2em 0;
+    border: 1px solid #ccc;
+  }
+</style>
 </head>
 <body>
 
-<label for="lieu">Lieu :</label>
-<input id="lieu" type="text" placeholder="Ex : Paris" />
+<h1>Boussole Primagavotte</h1>
 
-<p>Azimut corrigé : <span id="azimut">--°</span></p>
+<label for="lieu">Lieu :</label>
+<input id="lieu" type="text" placeholder="Ex: Paris" />
+
+<hr />
+
+<label for="offset">Correction (°) :</label>
+<input id="offset" type="number" value="0" step="1" min="-360" max="360" />
+
+<p>Azimut corrigé :</p>
+<div id="azimut">--°</div>
 
 <button id="startBtn">Autoriser l'accès aux capteurs</button>
 
 <div id="message"></div>
 
 <script>
-  const lieuInput = document.getElementById('lieu');
-  const azimutSpan = document.getElementById('azimut');
-  const messageDiv = document.getElementById('message');
-  const startBtn = document.getElementById('startBtn');
+  let offsetInput = document.getElementById('offset');
+  let lieuInput = document.getElementById('lieu');
+  let azimutDiv = document.getElementById('azimut');
+  let messageDiv = document.getElementById('message');
+  let startBtn = document.getElementById('startBtn');
 
-  let azimutCorrige = 0;
+  let offset = 0;
+  let azimutCorrige = null;
 
-  // Simule lecture azimut (remplace par ta fonction réelle)
-  function simulateAzimut() {
-    azimutCorrige = Math.floor(Math.random() * 360);
-    azimutSpan.textContent = azimutCorrige + "°";
+  offsetInput.addEventListener('input', () => {
+    offset = parseInt(offsetInput.value) || 0;
+  });
+
+  function handleOrientation(event) {
+    let alpha = event.alpha;
+    if (alpha !== null) {
+      azimutCorrige = Math.round(((-alpha + 360 + offset) % 360));
+      azimutDiv.textContent = azimutCorrige + "°";
+    } else {
+      azimutDiv.textContent = "N/A";
+      azimutCorrige = null;
+    }
   }
 
-  function sendAzimut() {
-    const lieu = lieuInput.value.trim();
-    if (!lieu) {
-      messageDiv.style.color = 'red';
-      messageDiv.textContent = "Merci de renseigner un lieu.";
-      return;
+
+  function startOrientation() {
+    if (typeof DeviceOrientationEvent !== 'undefined' &&
+        typeof DeviceOrientationEvent.requestPermission === 'function') {
+      // iOS 13+ demande permission explicite
+      DeviceOrientationEvent.requestPermission()
+        .then(permissionState => {
+          if (permissionState === 'granted') {
+            window.addEventListener('deviceorientation', handleOrientation);
+            messageDiv.style.color = 'green';
+            messageDiv.textContent = "Capteurs activés.";
+            startBtn.style.display = 'none';
+            startAutoSend();
+          } else {
+            messageDiv.style.color = 'red';
+            messageDiv.textContent = "Permission refusée pour les capteurs d'orientation.";
+          }
+        })
+        .catch(error => {
+          messageDiv.style.color = 'red';
+          messageDiv.textContent = "Erreur permission : " + error;
+        });
+    } else {
+      // Autres navigateurs / Android
+      window.addEventListener('deviceorientation', handleOrientation);
+      messageDiv.style.color = 'green';
+      messageDiv.textContent = "Capteurs activés.";
+      startBtn.style.display = 'none';
+      startAutoSend();
     }
+  }
+
+  startBtn.addEventListener('click', startOrientation);
+
+ function sendAzimuth() {
+    if (azimutCorrige === null) {
+        messageDiv.style.color = 'red';
+        messageDiv.textContent = "Impossible de lire l'azimut. (azimutCorrige est null)"; // Ajout d'une précision
+        return;
+    }
+    let lieu = lieuInput.value.trim();
+    if (!lieu) {
+        messageDiv.style.color = 'red';
+        messageDiv.textContent = "Merci de renseigner un lieu.";
+        return;
+    }
+
+    // --- AJOUTEZ CES LIGNES POUR DÉBUGGER ---
+    console.log("DEBUG - Valeur de azimutCorrige à envoyer :", azimutCorrige);
+    console.log("DEBUG - Valeur de lieu à envoyer :", lieu);
+    // --- FIN DES LIGNES DE DÉBOGAGE ---
+
     messageDiv.style.color = 'black';
     messageDiv.textContent = "Envoi en cours…";
+console.log("Envoi azimuth =", azimutCorrige, "lieu =", lieu);
+  fetch('https://emercier.synology.me/insert_azimuth_iphone.php', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+    body: azimuth=${azimutCorrige}&lieu=${encodeURIComponent(lieu)}
+})
+})
+.then(response => response.text())
+.then(data => {
+    messageDiv.style.color = 'green';
+    messageDiv.textContent = data;
+    console.log("DEBUG - Réponse du serveur via proxy :", data);
+})
+.catch(error => {
+    messageDiv.style.color = 'red';
+    messageDiv.textContent = "Erreur d'envoi via proxy : " + error;
+    console.error("DEBUG - Erreur Fetch proxy :", error);
+});
+}
 
-    fetch('https://tonserveur.com/insert_azimuth_iphone.php', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-      body: `azimuth=${azimutCorrige}&lieu=${encodeURIComponent(lieu)}`
-    })
-    .then(response => response.text())
-    .then(data => {
-      messageDiv.style.color = 'green';
-      messageDiv.textContent = "Réponse serveur : " + data;
-    })
-    .catch(error => {
-      messageDiv.style.color = 'red';
-      messageDiv.textContent = "Erreur d'envoi : " + error;
-    });
+  // Envoi automatique toutes les 10 secondes après démarrage
+  let intervalId = null;
+  function startAutoSend() {
+    if (intervalId) clearInterval(intervalId);
+    intervalId = setInterval(sendAzimuth, 10000);
   }
-
-  // Exemple simple : envoie toutes les 10 sec après clic bouton
-  startBtn.addEventListener('click', () => {
-    simulateAzimut(); // pour test
-    sendAzimut();
-    setInterval(() => {
-      simulateAzimut();
-      sendAzimut();
-    }, 10000);
-    startBtn.disabled = true;
-  });
 </script>
 
 </body>
